@@ -1,0 +1,3 @@
+# Superseded
+
+This change was built on 2026-11-01 and archived the same day with `--skip-specs`, so its specs were never synced to `openspec/specs/`. Right after the build, the workflow changed: the human now types only at three stops (brief, plan, explanation), and the agent runs propose, delegation to a worker, review, confirmed fixes, and archive on its own. Explain-back asks one question, for Large changes only. The specs and the workflow parts of `tasks.md` in this folder therefore describe an earlier design. The live harness is `AGENTS.md` and `.claude/`. The guardrail decisions in `design.md` still hold: deny rules, `guard.ps1`, `ask` for `git push` only, and fail closed. Read them before changing `.claude/settings.json` or `.claude/hooks/guard.ps1`.

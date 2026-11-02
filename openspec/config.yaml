@@ -1,0 +1,35 @@
+schema: spec-driven
+
+# Project context: constraints an agent cannot infer by reading the repo.
+context: |
+  Language: English. Write every artifact in English, keeping OpenSpec keywords (SHALL, WHEN, THEN, ADDED Requirements) unchanged.
+  The human reviews every plan before any code or file edit happens, and the implementer may be a different agent (Claude Code or Antigravity) that sees only the change folder.
+
+# Per-artifact rules: appear only in the matching artifact.
+rules:
+  proposal:
+    - State the problem and the intent in plain terms a reviewer can approve or reject in two minutes.
+    - Include an "Out of scope" section.
+  specs:
+    - Give every requirement at least one scenario in WHEN/THEN form that can be checked.
+  design:
+    - Record the decisions that were hard to reverse or had real alternatives, with the reason for each choice.
+    - For each new dependency, record why the standard library, native platform features, and dependencies already installed do not cover the need.
+  tasks:
+    - Make each task small enough to finish and check on its own.
+    - End each task with a verifiable done condition.
+    - Write each task so an agent that never saw the conversation can carry it out from the change folder alone.
+    - Before a task adds new code, check in order whether code in this repository, the standard library, native platform features, or dependencies already installed cover the need, and point the task there. A task adds new code only when none of these does.
+    - Keep the change small enough to build in one session; plan larger work as several changes, starting with the smallest useful one.
+
+# Per-operation guidance: advisory, not enforced.
+operations:
+  apply:
+    guidance:
+      - Work only on tasks listed in tasks.md.
+      - Tick a task only after verifying its done condition.
+      - When the plan and the code disagree, stop and report the gap to the human.
+      - Before writing a new function, helper, or dependency, search this repository for one that already does the job, and reuse it.
+  archive:
+    guidance:
+      - Summarize what shipped and any deviations before archiving.

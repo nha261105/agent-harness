@@ -1,0 +1,69 @@
+# Human-Gated Agent Harness
+
+A working setup where the human controls every phase of agent work, and a template to copy into other projects. The workflow itself is defined in `AGENTS.md`; this file only covers setup and reuse.
+
+## One-time machine setup
+
+- Node.js 20.19 or newer.
+- `npm install -g @fission-ai/openspec@latest` (the `/opsx:*` commands call the `openspec` CLI).
+- Optional, to delegate Build to another agent (Antigravity, Codex): the Orca app running with Orchestration enabled (Settings → Experimental). The coordinator then uses `orca orchestration` as described in the `orca-delegate` skill.
+- Optional, personal token savings: `skillOverrides` in `~/.claude/settings.json` hides skills you never want Claude to start on its own.
+
+## Reuse in another project
+
+1. Copy `.claude/` (without `settings.local.json`), `AGENTS.md`, and `HARNESS-SETUP.md` into the new repository.
+2. Open Claude Code there and ask it to read `HARNESS-SETUP.md` and follow it. The agent initializes OpenSpec, removes the extra files `init` generates, asks you a few questions about the project (what it is, its check command, constraints the code does not show), and deletes `HARNESS-SETUP.md` when it is done.
+3. Restart Claude Code and run the checks below.
+
+To upgrade a project that has an older harness, commit first. Then:
+
+- Replace `.claude/settings.json`, `.claude/hooks/`, and every harness skill under `.claude/skills/`. Delete harness skills that no longer exist, such as `grilling`.
+- Keep `openspec/` and `.claude/rules/`, and keep the project's own skills.
+- Copy `AGENTS.md` and `HARNESS-SETUP.md`, and tell the agent this is an upgrade. It then merges the project text from the old `AGENTS.md` (in git) and cleans `settings.local.json`.
+
+`HARNESS-SETUP.md` is the single source for these steps and for the `openspec/config.yaml` template; keep this repo's own `openspec/config.yaml` in sync with it.
+
+## Check it works
+
+- `/memory` lists `AGENTS.md` (Claude Code reads it only while no `CLAUDE.md` exists in the project or above it, so never run `/init`).
+- `/skills` shows `opsx:update` as user-only and `opsx:propose`, `opsx:apply`, `opsx:archive` as available to Claude.
+- In auto mode (`Shift+Tab`), a first `/brief` on a tiny change confirms the flow end to end: you only answer and say "ok" at the three stops in `AGENTS.md`.
+- In a session started with `claude --permission-mode bypassPermissions`, ask Claude to run `Get-Content .env`: the hook blocks it. Then ask for `git push --dry-run`: an approval prompt appears.
+
+## Troubleshooting
+
+| Symptom | Cause | Fix |
+| --- | --- | --- |
+| `/opsx:*` reports `openspec: command not found` | The `openspec` CLI is not installed globally. | Run `npm install -g @fission-ai/openspec@latest`. |
+| Claude Code does not follow `AGENTS.md` | A `CLAUDE.md` (for example one created by `/init`) exists in the project directory or above it, so Claude Code reads that instead. | Delete the `CLAUDE.md`, then run `/memory` and confirm `AGENTS.md` is listed. |
+| A hidden skill shows up again or costs tokens | Its `skillOverrides` entry is missing, misspelled, or in the wrong settings file. | Open `/skills` and check its state. Account and built-in skills are set in `~/.claude/settings.json`; the `opsx:update` entry is set in `.claude/settings.local.json`. |
+| Deleted skills or commands reappear after `openspec update` | The global OpenSpec profile is still `core` with delivery `both`, so `update` regenerates them. | Delete the regenerated files again, or change the profile with `openspec config profile` before running `openspec update` (an option; not yet tested). |
+| Every shell command is blocked and the message names guard.ps1 | `powershell.exe` cannot run the hook, or the hook timed out, and `onFailure: block` fails closed. | Run the hook by hand with a sample JSON (see the task list of change `redesign-harness-pair-workflow`) and fix the error it prints. |
+
+## Security model
+
+| Layer | Stops | Can be bypassed by |
+| --- | --- | --- |
+| Deny rules in `.claude/settings.json` | Claude's file tools and recognized file commands reading `.env` and credentials, and editing `.claude/settings.json` and `.claude/hooks/` | A script that opens the files itself |
+| `.claude/hooks/guard.ps1` hook | Shell commands that name a `.env` path, and `git push` written in a form the `ask` rule does not match | A script or alias that hides the path or the push |
+| GitHub branch protection on `main` | Any push to `main` that breaks the protection rules (the only hard limit) | Only a repository admin who changes the rules |
+
+Without an OS sandbox, a script can still read `.env`, so keep real secrets out of the working tree. Use auto mode for day-to-day work; switch on bypass permissions only for a long Build you leave unattended. Edits to `.claude/settings.json` and `.claude/hooks/` are the human's.
+
+## Adding rules per project
+
+Add a rule only after Claude repeats the same mistake in a project. Create `.claude/rules/<topic>.md`; the `paths` frontmatter is the only field Claude Code reads, and a rule without it loads every session.
+
+```markdown
+---
+paths:
+  - "src/api/**"
+---
+Validate every request body and return the shared error shape.
+```
+
+Rules guide behavior. Hard limits belong in `permissions` or hooks in `.claude/settings.json`, and mechanical mistakes (formatting, banned imports) belong in a linter or CI check.
+
+## Notes
+
+- `.agents/` is a legacy copy kept on purpose. Antigravity still reads rules and skills from it.

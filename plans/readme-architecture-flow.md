@@ -19,3 +19,4 @@ Done when the new sections exist in `README.md`, every file they name exists, an
 
 - [x] 6. The Layers table said `opsx:update` is hidden by `skillOverrides`, but that only holds once `.claude/settings.local.json` exists (step 3 of `HARNESS-SETUP.md`); this repository has none. State the condition. Verify: Read of the Layers row names `settings.local.json`.
 - [x] 7. The opening paragraph still said the README "only covers setup and reuse", which the new section contradicts. Reword it. Verify: Read of line 3 mentions how the pieces fit together.
+- [x] 8. Merge the two Troubleshooting rows about the hook into one that names both causes (no `powershell.exe` outside Windows, or a timeout) and both fixes. Picked by the human at Stop 3. Verify: Grep finds one Troubleshooting row that names guard.ps1.

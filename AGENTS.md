@@ -17,7 +17,7 @@ The human types only at the three stops below: answers, questions, and "ok". Bet
 1. **Brief** (`/brief`). **Stop 1:** the human confirms the brief and the size.
 2. **Plan.** Large: run `/opsx:propose <name>`. Small: write `plans/<name>.md` in the format the `brief` skill gives. Summarize the plan in 5–10 lines. **Stop 2:** the human approves the plan.
 3. **Build.** Large: delegate with `orca-delegate`, answer the worker, and accept its result. Small: build it yourself. Edit only what the tasks name, tick a task only once its outcome is verified, and stop at once when plan and code disagree.
-4. **Review.** Run `/code-review`, then `/ponytail-review`. Fix correctness findings the review marks as confirmed without asking: append each under `## Review fixes` in the plan and build it (Large: send it back to the same worker). Stop after two fix rounds. Keep every other finding (design, scope, deletions) for Stop 3.
+4. **Review.** Run `/code-review low` (Small) or `/code-review medium` (Large), then `/ponytail-review`. Fix correctness findings the review marks as confirmed without asking: append each under `## Review fixes` in the plan and build it (Large: send it back to the same worker). Stop after two fix rounds. Keep every other finding (design, scope, deletions) for Stop 3.
 5. **Explain** (`/explain-back <name>`). **Stop 3:** the human asks questions and decides the pending findings. Picked findings go back to step 3. When the human says done: Large, run `/opsx:archive <name>` and pick "Sync now"; Small, report it done.
 
 ## Guardrails

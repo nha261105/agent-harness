@@ -12,6 +12,7 @@ Done when all of these hold:
 - No `openspec-*` skills remain under `.claude/skills/`.
 - `.claude/settings.json` and `.claude/hooks/guard.ps1` are unchanged from the template.
 - `AGENTS.md` carries a `Verify:` line with a check command the human confirmed, or your final report states that the repository has none.
+- When the repository has a remote `origin`, a `dev` branch exists there, or the human chose to work from `main`.
 - This file is deleted, and your final report lists what changed, which commands ran, what you could not check, and ends with the human's next steps in Vietnamese (restart Claude Code, then `/memory` and `/skills`).
 
 ## 0. Preconditions
@@ -108,11 +109,15 @@ operations:
 
 Check: `openspec context --json` returns a `root` and prints no warning (a warning means a config rule was dropped; fix the config and rerun), and `AGENTS.md` no longer mentions `HARNESS-SETUP.md`.
 
-## 5. Delete this file
+## 5. Dev branch
 
-After steps 0 to 4 passed, remove `HARNESS-SETUP.md`.
+In `AGENTS.md`, each change branches from `dev` and merges back into it by PR, so `main` stays stable. When the repository uses git with a remote `origin` and `git ls-remote --heads origin dev` prints nothing, ask the human once whether to create `dev`. On yes, run `git fetch origin` and then `git push origin origin/main:refs/heads/dev`, which creates `dev` on the remote without switching the current branch (the push goes through the human's approval prompt). On no, the agent works from `main`, as `AGENTS.md` allows. Check: `git ls-remote --heads origin dev` prints a line, or the human said no.
 
-## 6. Final report: end with the human's next steps
+## 6. Delete this file
+
+After steps 0 to 5 passed, remove `HARNESS-SETUP.md`.
+
+## 7. Final report: end with the human's next steps
 
 Report in a few lines: what changed, which commands ran and their results, and what you did not check. Then finish with this block in Vietnamese, worded as a request to the human, because only they can do it (Claude Code reads its configuration at session start, and the slash commands below are theirs to type). Keep the command names unchanged:
 
@@ -121,4 +126,4 @@ Report in a few lines: what changed, which commands ran and their results, and w
 > 2. Gõ `/memory` và kiểm tra `AGENTS.md` có trong danh sách.
 > 3. Gõ `/skills` và kiểm tra `opsx:update` là user-only, `opsx:propose`, `opsx:apply`, `opsx:archive` thì không, và không còn skill `openspec-*` nào.
 > 4. Bật auto mode (`Shift+Tab`), rồi thử `/brief` với một việc nhỏ: bạn chỉ cần trả lời và nói "ok" ở 3 điểm dừng.
-> 5. Trên GitHub, bật branch protection cho `main` (Settings → Branches): đây là lớp duy nhất chặn được mọi cách push.
+> 5. Trên GitHub, bật branch protection cho `main` và `dev` (Settings → Branches): đây là lớp duy nhất chặn được mọi cách push.

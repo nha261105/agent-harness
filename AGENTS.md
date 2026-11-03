@@ -24,6 +24,10 @@ The human types only at the three stops below: answers, questions, and "ok". Bet
 
 `.env` files and credentials are off limits, and every `git push` goes through the human's approval prompt. When a guardrail blocks a command, report it and do not work around it.
 
+## Git
+
+Name the branch `feat/<name>`, `fix/<name>`, or `chore/<name>` after the change, unless the environment assigns one, and cut it from `dev` (from `main` when the repository has no `dev`) right after switching to that base and running `git pull --ff-only`. Commit after each verified task; when the human says done, push and open a PR into that base, and start the next change only after the human merges it. Only the human merges and promotes `dev` to `main`; never merge into either locally.
+
 ## Gotchas
 
 - Keep `AGENTS.md` as the only instruction file. A `CLAUDE.md`, `.claude/CLAUDE.md`, or `CLAUDE.local.md` in this directory or any directory above it (`/init` creates one) makes Claude Code read that file instead of this one.

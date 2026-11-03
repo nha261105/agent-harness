@@ -9,7 +9,7 @@ A working setup where the human controls every phase of agent work, and a templa
 ### Layout
 
 ```
-AGENTS.md                  rules: choosing the path, the workflow and its three stops, guardrails
+AGENTS.md                  rules: choosing the path, the workflow and its three stops, guardrails, git
 plans/<name>.md            a Small change: Brief, Tasks (each with Verify:), Review fixes
 openspec/
   config.yaml              project context and per-artifact rules for Large changes
@@ -55,6 +55,26 @@ Done: Large runs /opsx:archive <name> and picks "Sync now"; Small is reported do
 ```
 
 `handoff` sits outside the flow: the human calls it to move work to a new session, and it records the last stop passed.
+
+### Git
+
+```
+main ─────────────────────────●──── stable; only the human merges dev into it
+                              ↑ PR
+dev  ──●────────●────────●────┘
+       ↑ PR     ↑ PR     ↑ PR    the human merges each one
+     feat/a   fix/b    feat/c    one change at a time, each cut from dev after the previous merge
+```
+
+To start the next change once the previous PR is merged:
+
+```bash
+git switch dev
+git pull --ff-only
+git switch -c feat/<name>
+```
+
+The rule is the Git section of `AGENTS.md`; step 5 of `HARNESS-SETUP.md` creates `dev` when it installs the harness. This template repository has no `dev`, so its own changes branch from and merge into `main`.
 
 ## Token cost
 

@@ -130,7 +130,7 @@ To upgrade a project that has an older harness, commit first. Then:
 | --- | --- | --- |
 | Deny rules in `.claude/settings.json` | Claude's file tools and recognized file commands reading `.env` and credentials, and editing `.claude/settings.json` and `.claude/hooks/` | A script that opens the files itself |
 | `.claude/hooks/guard.ps1` hook | Shell commands that name a `.env` path, and `git push` written in a form the `ask` rule does not match | A script or alias that hides the path or the push |
-| GitHub branch protection on `main` | Any push to `main` that breaks the protection rules (the only hard limit) | Only a repository admin who changes the rules |
+| GitHub branch protection on `main` and `dev` | Any push to `main` or `dev` that breaks the protection rules (the only hard limit) | Only a repository admin who changes the rules |
 
 Without an OS sandbox, a script can still read `.env`, so keep real secrets out of the working tree. Use auto mode for day-to-day work; switch on bypass permissions only for a long Build you leave unattended. Edits to `.claude/settings.json` and `.claude/hooks/` are the human's.
 

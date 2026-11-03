@@ -16,3 +16,4 @@ Done when `AGENTS.md` has a Git section of at most three lines that describes th
 ## Review fixes
 
 - [x] 5. Step 5 of `HARNESS-SETUP.md` created `dev` with `git switch -c dev origin/main`, which left the human on `dev` with the copied harness files uncommitted. Create it on the remote with `git push origin origin/main:refs/heads/dev` instead, without switching branches. Verify: Read of step 5 shows no `git switch`.
+- [x] 6. The README Security model row named branch protection on `main` only, while step 5 of `HARNESS-SETUP.md` asks for it on `dev` too. Name both. Picked by the human at Stop 3. Verify: Grep finds "on `main` and `dev`" in `README.md`.

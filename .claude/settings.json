@@ -16,8 +16,6 @@
       "Edit(**/.env.*)",
       "Edit(CLAUDE.md)",
       "Edit(CLAUDE.local.md)",
-      "Edit(.claude/settings.json)",
-      "Edit(.claude/hooks/**)"
     ],
     "ask": [
       "Bash(git push)",

@@ -9,7 +9,7 @@ A working setup where the human controls every phase of agent work, and a templa
 ### Layout
 
 ```
-AGENTS.md                  rules: choosing the path, the workflow and its three stops, guardrails, git
+AGENTS.md                  rules: choosing the path, the workflow and its stops, guardrails, git
 plans/<name>.md            a Small change: Brief, Tasks (each with Verify:), Review fixes
 openspec/
   config.yaml              project context and per-artifact rules for Large changes
@@ -26,7 +26,7 @@ openspec/
 
 | Layer | What it does | When it costs context |
 | --- | --- | --- |
-| `AGENTS.md` | The map: Small or Large, the three stops, guardrails | Every session, every turn |
+| `AGENTS.md` | The map: Small or Large, the stops, guardrails | Every session, every turn |
 | Skill and command descriptions | Tell the agent which skills exist and when to use them | Every session. `brief`, `handoff` (`disable-model-invocation`) and `opsx:update` (once `.claude/settings.local.json` sets `skillOverrides`, step 3 of `HARNESS-SETUP.md`) are left out until the human calls them |
 | Skill and command bodies | Step-by-step instructions for one step of the workflow | Only while that step runs |
 | `openspec/config.yaml` | Context and rules the `opsx` commands read | Only during `/opsx:*` |
@@ -35,15 +35,17 @@ openspec/
 ### Flow
 
 ```
-Human: /brief <what, why, done when>        loads skills/brief
-  agent reads the code read-only, asks at most three questions, proposes Small or Large
-■ Stop 1: human confirms the brief and the size
-  ├─ Small: agent writes plans/<name>.md
+Human: /brief <what, or an issue link>     loads skills/brief
+  agent reads the code read-only, drafts a missing why or done-when as (proposed),
+  asks at most three questions, proposes Small or Large (risky areas are always Large)
+■ Stop 1: human confirms the brief (What, Why, Out of scope, Done when) and the size
+  ├─ Small: the same message lists the tasks; after ok the agent writes plans/<name>.md,
+  │         builds, and ticks a task only after its Verify passes
   └─ Large: /opsx:propose <name>           loads commands/opsx/propose.md and openspec/config.yaml
-■ Stop 2: human approves the plan summary
-  ├─ Small: agent builds, ticks a task only after its Verify passes
-  └─ Large: orca-delegate starts a worker that runs /opsx:apply;
+            ■ Stop 2: human approves the plan summary
+            orca-delegate starts a worker that runs /opsx:apply;
             the coordinator answers it and checks its files against Ownership
+Build ends with the project's Verify: line from AGENTS.md, when it has one
 Review: /code-review low (Small) or medium (Large), then /ponytail-review
   confirmed correctness findings go under ## Review fixes and back to Build (two rounds at most)
   design, scope, and deletion findings wait for Stop 3
@@ -121,7 +123,7 @@ To upgrade a project that has an older harness, commit first. Then:
 
 - `/memory` lists `AGENTS.md` (Claude Code reads it only while no `CLAUDE.md` exists in the project or above it, so never run `/init`).
 - `/skills` shows `opsx:update` as user-only and `opsx:propose`, `opsx:apply`, `opsx:archive` as available to Claude.
-- In auto mode (`Shift+Tab`), a first `/brief` on a tiny change confirms the flow end to end: you only answer and say "ok" at the three stops in `AGENTS.md`.
+- In auto mode (`Shift+Tab`), a first `/brief` on a tiny change confirms the flow end to end: you only answer and say "ok" at Stop 1 and Stop 3 in `AGENTS.md` (a Small change has no Stop 2).
 - In a session started with `claude --permission-mode bypassPermissions`, ask Claude to run `Get-Content .env`: the hook blocks it. Then ask for `git push --dry-run`: an approval prompt appears.
 
 ## Troubleshooting

@@ -12,7 +12,7 @@ For a reported bug, find the root cause before changing product code. Report the
 
 ## Workflow
 
-The human types only at the three stops below: answers, questions, and "ok". Between stops, run every step yourself without asking for a command. At each stop, report and wait. When compacting, preserve the change name, the last stop passed, and what the human approved.
+The human types only at the three stops below: answers, questions, and "ok". Between stops, run every step yourself without asking for a command. At each stop, report and wait. When compacting, preserve the change name, the last stop passed, and what the human approved. To keep context lean, suggest `/clear` after the human says done and after Stop 2 on a Large change (the plan holds the state), and suggest `/handoff` when the human says the session is long before the change is done.
 
 1. **Brief** (`/brief`). **Stop 1:** the human confirms the brief and the size.
 2. **Plan.** Large: run `/opsx:propose <name>`. Small: write `plans/<name>.md` in the format the `brief` skill gives. Summarize the plan in 5–10 lines. **Stop 2:** the human approves the plan.

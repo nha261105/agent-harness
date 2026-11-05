@@ -56,6 +56,16 @@ Done: Large runs /opsx:archive <name> and picks "Sync now"; Small is reported do
 
 `handoff` sits outside the flow: the human calls it to move work to a new session, and it records the last stop passed.
 
+### Context
+
+A long session dilutes the model's context and costs more tokens. The agent cannot measure its own context or type `/clear`, so `AGENTS.md` has it suggest a reset at fixed points; the human runs the command, and can check usage with `/context` at any time.
+
+| When | Where the state is | Use |
+| --- | --- | --- |
+| After the human says done | In the plan and the PR | `/clear` |
+| After Stop 2 on a Large change | In `openspec/changes/<name>/` | `/clear`, then type: "Build `<name>`; Stop 2 is approved." |
+| Mid-Build, mid-Review, or at Stop 3 with findings half decided, when the session is long | Partly in the conversation only | `/handoff`, then paste the line it ends with into the new session |
+
 ### Git
 
 ```

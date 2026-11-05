@@ -7,11 +7,12 @@ You are installing a human-gated agent harness into the repository you are in. R
 Done when all of these hold:
 
 - `AGENTS.md` is the only instruction file Claude Code reads here (no `CLAUDE.md` in this directory or above it).
-- OpenSpec is initialized, `/opsx:propose`, `/opsx:apply`, `/opsx:archive`, and `/opsx:update` exist, and only `/opsx:update` is user-only (the agent runs the other three itself, as `AGENTS.md` describes).
+- OpenSpec is initialized, `/opsx:propose`, `/opsx:apply`, `/opsx:archive`, and `/opsx:update` exist, and `/opsx:update` is user-only while the other three are not (the agent runs them itself, as `AGENTS.md` describes).
 - `openspec/config.yaml` carries the human's project context and the rules below.
 - No `openspec-*` skills remain under `.claude/skills/`.
 - `.claude/settings.json` and `.claude/hooks/guard.ps1` are unchanged from the template.
 - `AGENTS.md` carries a `Verify:` line with a check command the human confirmed, or your final report states that the repository has none.
+- When the repository has a remote `origin`, a `dev` branch exists there, or the human chose to work from `main`.
 - This file is deleted, and your final report lists what changed, which commands ran, what you could not check, and ends with the human's next steps in Vietnamese (restart Claude Code, then `/memory` and `/skills`).
 
 ## 0. Preconditions
@@ -35,8 +36,29 @@ Do not run `openspec update` afterwards; it regenerates what you just removed.
 Create `.claude/settings.local.json` (merge when it exists, and remove any `opsx:propose`, `opsx:apply`, or `opsx:archive` entry an older harness left in `skillOverrides`, because the agent runs those itself) with:
 
 ```json
-{ "skillOverrides": { "opsx:update": "user-invocable-only" } }
+{
+  "skillOverrides": {
+    "opsx:update": "user-invocable-only",
+    "init": "user-invocable-only",
+    "anthropic-skills:docx": "user-invocable-only",
+    "anthropic-skills:pptx": "user-invocable-only",
+    "anthropic-skills:xlsx": "user-invocable-only",
+    "anthropic-skills:pdf": "user-invocable-only",
+    "anthropic-skills:google-workspace": "user-invocable-only",
+    "anthropic-skills:morning": "user-invocable-only",
+    "anthropic-skills:import-memory": "user-invocable-only",
+    "anthropic-skills:deep-research": "user-invocable-only",
+    "anthropic-skills:computer-use": "user-invocable-only",
+    "anthropic-skills:built-in-browser": "user-invocable-only",
+    "anthropic-skills:chrome-browser": "user-invocable-only",
+    "dataviz": "user-invocable-only",
+    "artifact-diagramming": "user-invocable-only",
+    "plugin-authoring": "user-invocable-only"
+  }
+}
 ```
+
+The entries after `opsx:update` hide account and built-in skills this harness never needs, to save context; `init` is hidden because it creates a `CLAUDE.md`. Keep `code-review` visible: the Review step uses it.
 
 When the repository uses git and `.gitignore` lacks `.claude/settings.local.json`, add it. Check: the file parses as JSON.
 
@@ -87,17 +109,21 @@ operations:
 
 Check: `openspec context --json` returns a `root` and prints no warning (a warning means a config rule was dropped; fix the config and rerun), and `AGENTS.md` no longer mentions `HARNESS-SETUP.md`.
 
-## 5. Delete this file
+## 5. Dev branch
 
-After steps 0 to 4 passed, remove `HARNESS-SETUP.md`.
+In `AGENTS.md`, each change branches from `dev` and merges back into it by PR, so `main` stays stable. When the repository uses git with a remote `origin` and `git ls-remote --heads origin dev` prints nothing, ask the human once whether to create `dev`. On yes, run `git fetch origin` and then `git push origin origin/main:refs/heads/dev`, which creates `dev` on the remote without switching the current branch (the push goes through the human's approval prompt). On no, the agent works from `main`, as `AGENTS.md` allows. Check: `git ls-remote --heads origin dev` prints a line, or the human said no.
 
-## 6. Final report: end with the human's next steps
+## 6. Delete this file
+
+After steps 0 to 5 passed, remove `HARNESS-SETUP.md`.
+
+## 7. Final report: end with the human's next steps
 
 Report in a few lines: what changed, which commands ran and their results, and what you did not check. Then finish with this block in Vietnamese, worded as a request to the human, because only they can do it (Claude Code reads its configuration at session start, and the slash commands below are theirs to type). Keep the command names unchanged:
 
 > **Việc bạn cần làm tiếp (setup chưa xong cho đến khi bạn làm các bước này):**
 > 1. Khởi động lại Claude Code trong repo này.
 > 2. Gõ `/memory` và kiểm tra `AGENTS.md` có trong danh sách.
-> 3. Gõ `/skills` và kiểm tra chỉ `opsx:update` là user-only, và không còn skill `openspec-*` nào.
+> 3. Gõ `/skills` và kiểm tra `opsx:update` là user-only, `opsx:propose`, `opsx:apply`, `opsx:archive` thì không, và không còn skill `openspec-*` nào.
 > 4. Bật auto mode (`Shift+Tab`), rồi thử `/brief` với một việc nhỏ: bạn chỉ cần trả lời và nói "ok" ở 3 điểm dừng.
-> 5. Trên GitHub, bật branch protection cho `main` (Settings → Branches): đây là lớp duy nhất chặn được mọi cách push.
+> 5. Trên GitHub, bật branch protection cho `main` và `dev` (Settings → Branches): đây là lớp duy nhất chặn được mọi cách push.

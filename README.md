@@ -9,7 +9,7 @@ A working setup where the human controls every phase of agent work, and a templa
 ### Layout
 
 ```
-AGENTS.md                  rules: choosing the path, the workflow and its three stops, guardrails
+AGENTS.md                  rules: choosing the path, the workflow and its three stops, guardrails, git
 plans/<name>.md            a Small change: Brief, Tasks (each with Verify:), Review fixes
 openspec/
   config.yaml              project context and per-artifact rules for Large changes
@@ -44,7 +44,7 @@ Human: /brief <what, why, done when>        loads skills/brief
   ├─ Small: agent builds, ticks a task only after its Verify passes
   └─ Large: orca-delegate starts a worker that runs /opsx:apply;
             the coordinator answers it and checks its files against Ownership
-Review: /code-review, then /ponytail-review
+Review: /code-review low (Small) or medium (Large), then /ponytail-review
   confirmed correctness findings go under ## Review fixes and back to Build (two rounds at most)
   design, scope, and deletion findings wait for Stop 3
 /explain-back <name>                        loads skills/explain-back
@@ -56,14 +56,44 @@ Done: Large runs /opsx:archive <name> and picks "Sync now"; Small is reported do
 
 `handoff` sits outside the flow: the human calls it to move work to a new session, and it records the last stop passed.
 
+### Context
+
+A long session dilutes the model's context and costs more tokens. The agent cannot measure its own context or type `/clear`, so `AGENTS.md` has it suggest a reset at fixed points; the human runs the command, and can check usage with `/context` at any time.
+
+| When | Where the state is | Use |
+| --- | --- | --- |
+| After the human says done | In the plan and the PR | `/clear` |
+| After Stop 2 on a Large change | In `openspec/changes/<name>/` | `/clear`, then type: "Build `<name>`; Stop 2 is approved." |
+| Mid-Build, mid-Review, or at Stop 3 with findings half decided, when the session is long | Partly in the conversation only | `/handoff`, then paste the line it ends with into the new session |
+
+### Git
+
+```
+main ─────────────────────────●──── stable; only the human merges dev into it
+                              ↑ PR
+dev  ──●────────●────────●────┘
+       ↑ PR     ↑ PR     ↑ PR    the human merges each one
+     feat/a   fix/b    feat/c    one change at a time, each cut from dev after the previous merge
+```
+
+To start the next change once the previous PR is merged:
+
+```bash
+git switch dev
+git pull --ff-only
+git switch -c feat/<name>
+```
+
+The rule is the Git section of `AGENTS.md`; step 5 of `HARNESS-SETUP.md` creates `dev` when it installs the harness. This template repository has no `dev`, so its own changes branch from and merge into `main`.
+
 ## Token cost
 
 Where a change spends most of its context, largest first:
 
 - **Generated `opsx` commands.** `.claude/commands/opsx/propose.md` and `archive.md` run to about 170 and 265 lines, much of it for OpenSpec stores and branches this harness never takes. A Large change loads propose, apply (in the worker), and archive. `openspec update` regenerates these files, so trimming them by hand does not last.
-- **`/code-review` level.** `AGENTS.md` does not name a level, so the skill reuses the last one typed; a high level starts many reviewer subagents.
+- **`/code-review` level.** `AGENTS.md` pins it to `low` for Small and `medium` for Large; a higher level starts many reviewer subagents, so raise it only for a risky change.
 - **The worker on Large.** The worker reads the change folder from scratch, and the coordinator spends turns answering it.
-- **Skill descriptions.** Loaded every session, including account and built-in skills outside this repository. Hide the ones you never use with `skillOverrides` in `~/.claude/settings.json`.
+- **Skill descriptions.** Loaded every session, including account and built-in skills outside this repository. Step 3 of `HARNESS-SETUP.md` hides the ones this harness never needs through `skillOverrides` in `.claude/settings.local.json`; hide more there or in `~/.claude/settings.json`.
 - **The diff, read three times.** `/code-review`, `/ponytail-review`, and `/explain-back` each read it.
 
 ## One-time machine setup
@@ -100,7 +130,7 @@ To upgrade a project that has an older harness, commit first. Then:
 | --- | --- | --- |
 | `/opsx:*` reports `openspec: command not found` | The `openspec` CLI is not installed globally. | Run `npm install -g @fission-ai/openspec@latest`. |
 | Claude Code does not follow `AGENTS.md` | A `CLAUDE.md` (for example one created by `/init`) exists in the project directory or above it, so Claude Code reads that instead. | Delete the `CLAUDE.md`, then run `/memory` and confirm `AGENTS.md` is listed. |
-| A hidden skill shows up again or costs tokens | Its `skillOverrides` entry is missing, misspelled, or in the wrong settings file. | Open `/skills` and check its state. Account and built-in skills are set in `~/.claude/settings.json`; the `opsx:update` entry is set in `.claude/settings.local.json`. |
+| A hidden skill shows up again or costs tokens | Its `skillOverrides` entry is missing, misspelled, or in the wrong settings file. | Open `/skills` and check its state. The template's entries (from step 3 of `HARNESS-SETUP.md`) are in `.claude/settings.local.json`; any others you add are in `~/.claude/settings.json`. If an account or built-in skill ignores the project entry, move it to `~/.claude/settings.json`. |
 | Deleted skills or commands reappear after `openspec update` | The global OpenSpec profile is still `core` with delivery `both`, so `update` regenerates them. | Delete the regenerated files again, or change the profile with `openspec config profile` before running `openspec update` (an option; not yet tested). |
 | Every shell command is blocked and the message names guard.ps1 or `powershell.exe` | `powershell.exe` cannot run the hook (it ships only with Windows, so Linux, macOS, and Claude Code on the web lack it), or the hook timed out, and `onFailure: block` fails closed. | On Windows, run the hook by hand with a sample JSON (see the task list of change `redesign-harness-pair-workflow`) and fix the error it prints. Elsewhere, the human changes the hook command in `.claude/settings.json`; the agent cannot, because `.claude/settings.json` and `.claude/hooks/` are denied to it. |
 
@@ -110,7 +140,7 @@ To upgrade a project that has an older harness, commit first. Then:
 | --- | --- | --- |
 | Deny rules in `.claude/settings.json` | Claude's file tools and recognized file commands reading `.env` and credentials, and editing `.claude/settings.json` and `.claude/hooks/` | A script that opens the files itself |
 | `.claude/hooks/guard.ps1` hook | Shell commands that name a `.env` path, and `git push` written in a form the `ask` rule does not match | A script or alias that hides the path or the push |
-| GitHub branch protection on `main` | Any push to `main` that breaks the protection rules (the only hard limit) | Only a repository admin who changes the rules |
+| GitHub branch protection on `main` and `dev` | Any push to `main` or `dev` that breaks the protection rules (the only hard limit) | Only a repository admin who changes the rules |
 
 Without an OS sandbox, a script can still read `.env`, so keep real secrets out of the working tree. Use auto mode for day-to-day work; switch on bypass permissions only for a long Build you leave unattended. Edits to `.claude/settings.json` and `.claude/hooks/` are the human's.
 

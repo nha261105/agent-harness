@@ -12,17 +12,21 @@ For a reported bug, find the root cause before changing product code. Report the
 
 ## Workflow
 
-The human types only at the three stops below: answers, questions, and "ok". Between stops, run every step yourself without asking for a command. At each stop, report and wait. When compacting, preserve the change name, the last stop passed, and what the human approved.
+The human types only at the three stops below: answers, questions, and "ok". Between stops, run every step yourself without asking for a command. At each stop, report and wait. When compacting, preserve the change name, the last stop passed, and what the human approved. To keep context lean, suggest `/clear` after the human says done and after Stop 2 on a Large change (the plan holds the state), and suggest `/handoff` when the human says the session is long before the change is done.
 
 1. **Brief** (`/brief`). **Stop 1:** the human confirms the brief and the size.
 2. **Plan.** Large: run `/opsx:propose <name>`. Small: write `plans/<name>.md` in the format the `brief` skill gives. Summarize the plan in 5–10 lines. **Stop 2:** the human approves the plan.
 3. **Build.** Large: delegate with `orca-delegate`, answer the worker, and accept its result. Small: build it yourself. Edit only what the tasks name, tick a task only once its outcome is verified, and stop at once when plan and code disagree.
-4. **Review.** Run `/code-review`, then `/ponytail-review`. Fix correctness findings the review marks as confirmed without asking: append each under `## Review fixes` in the plan and build it (Large: send it back to the same worker). Stop after two fix rounds. Keep every other finding (design, scope, deletions) for Stop 3.
+4. **Review.** Run `/code-review low` (Small) or `/code-review medium` (Large), then `/ponytail-review`. Fix correctness findings the review marks as confirmed without asking: append each under `## Review fixes` in the plan and build it (Large: send it back to the same worker). Stop after two fix rounds. Keep every other finding (design, scope, deletions) for Stop 3.
 5. **Explain** (`/explain-back <name>`). **Stop 3:** the human asks questions and decides the pending findings. Picked findings go back to step 3. When the human says done: Large, run `/opsx:archive <name>` and pick "Sync now"; Small, report it done.
 
 ## Guardrails
 
 `.env` files and credentials are off limits, and every `git push` goes through the human's approval prompt. When a guardrail blocks a command, report it and do not work around it.
+
+## Git
+
+Name the branch `feat/<name>`, `fix/<name>`, or `chore/<name>` after the change, unless the environment assigns one, and cut it from `dev` (from `main` when the repository has no `dev`) right after switching to that base and running `git pull --ff-only`. Commit after each verified task; when the human says done, push and open a PR into that base, and start the next change only after the human merges it. Only the human merges and promotes `dev` to `main`; never merge into either locally.
 
 ## Gotchas
 

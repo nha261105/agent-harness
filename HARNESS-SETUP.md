@@ -125,5 +125,5 @@ Report in a few lines: what changed, which commands ran and their results, and w
 > 1. Khởi động lại Claude Code trong repo này.
 > 2. Gõ `/memory` và kiểm tra `AGENTS.md` có trong danh sách.
 > 3. Gõ `/skills` và kiểm tra `opsx:update` là user-only, `opsx:propose`, `opsx:apply`, `opsx:archive` thì không, và không còn skill `openspec-*` nào.
-> 4. Bật auto mode (`Shift+Tab`), rồi thử `/brief` với một việc nhỏ: bạn chỉ cần trả lời và nói "ok" ở 3 điểm dừng.
+> 4. Bật auto mode (`Shift+Tab`), rồi thử `/brief` với một việc nhỏ: bạn chỉ cần trả lời và nói "ok" ở Stop 1 và Stop 3 (việc nhỏ không có Stop 2).
 > 5. Trên GitHub, bật branch protection cho `main` và `dev` (Settings → Branches): đây là lớp duy nhất chặn được mọi cách push.

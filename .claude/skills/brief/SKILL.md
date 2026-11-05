@@ -10,7 +10,7 @@ Turn the human's intent into a brief, then propose a size. Follow these steps in
 1. **Get the intent.** Only "what" must come from the human: their own words, or an issue or ticket link they give, which you read. When there is no "what", ask for it and wait; never invent one. When why or done-when is missing, draft it from the code or the issue and mark it `(proposed)`.
 2. **Read the code.** Read the code the intent touches, read-only. Look facts up yourself and never ask the human for them.
 3. **Ask.** Ask at most three numbered questions, only where the answer changes the plan. Follow each with `➡️` and your recommended answer plus a one-line reason. When nothing is open, say so and ask nothing.
-4. **Size.** Large when the work spans more than one module, changes behavior `openspec/specs/` describes, or touches data migration or deletion, auth or permissions, a public API or contract, payments, or security settings, even in one file. Otherwise Small. Pick a kebab-case `<name>`.
+4. **Size.** Pick Small or Large by the rule in `AGENTS.md` ("Choosing the path"), and a kebab-case `<name>`.
 5. **Stop 1.** After the answers, restate the brief in four lines (What, Why, Out of scope, Done when) and give the size with its reason.
    - Small: add the numbered tasks, each in the form `N. <task>. Verify: <command or observable check>`. End with: "Say ok and I will build it." There is no Stop 2.
    - Large: end with: "Say ok and I will plan it."

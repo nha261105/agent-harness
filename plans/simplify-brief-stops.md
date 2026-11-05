@@ -15,3 +15,6 @@ Done when: `.claude/skills/brief/SKILL.md`, `AGENTS.md` ("Choosing the path" and
 - [x] 4. Push the changed files and this plan to branch `claude/practical-planck-udd0is` through the GitHub MCP tools (Bash is blocked by the hook; change A fixes that). Verify: the push returns a commit SHA.
 
 ## Review fixes
+
+- [x] 5. The risk list in `.claude/skills/brief/SKILL.md` step 4 repeats `AGENTS.md` "Choosing the path"; point to `AGENTS.md` instead. Verify: Grep finds `migration` in `AGENTS.md` and not in the skill.
+- [x] 6. `HARNESS-SETUP.md` step 7 still tells the human to say "ok" at 3 stops; say Stop 1 and Stop 3 for a Small change. Verify: Grep finds no `3 điểm dừng` in `HARNESS-SETUP.md`.

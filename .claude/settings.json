@@ -15,7 +15,7 @@
       "Edit(**/.env)",
       "Edit(**/.env.*)",
       "Edit(CLAUDE.md)",
-      "Edit(CLAUDE.local.md)",
+      "Edit(CLAUDE.local.md)"
     ],
     "ask": [
       "Bash(git push)",

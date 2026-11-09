@@ -71,22 +71,24 @@ A long session dilutes the model's context and costs more tokens. The agent cann
 ### Git
 
 ```
-main ─────────────────────────●──── stable; only the human merges dev into it
-                              ↑ PR
-dev  ──●────────●────────●────┘
-       ↑ PR     ↑ PR     ↑ PR    the human merges each one
-     feat/a   fix/b    feat/c    one change at a time, each cut from dev after the previous merge
+main ──●──────────●──────────●────  production: every merge deploys
+       ↑ MR/PR    ↑ MR/PR    ↑ MR/PR   auto-merge once the verify jobs pass, then the deploy job runs
+     feat/a     fix/b      feat/c      one change at a time, each cut from main after the previous merge
 ```
 
-To start the next change once the previous PR is merged:
+A change, start to finish:
 
 ```bash
-git switch dev
+git switch main
 git pull --ff-only
 git switch -c feat/<name>
+# small commits, one per verified task
+git push -u origin feat/<name>                                # after you say done; asks for approval
+glab mr create --target-branch main --fill --yes && glab mr merge --auto-merge  # GitLab
+gh pr create --base main --fill && gh pr merge --auto --squash # GitHub
 ```
 
-The rule is the Git section of `AGENTS.md`; step 5 of `HARNESS-SETUP.md` creates `dev` when it installs the harness. This template repository has no `dev`, so its own changes branch from and merge into `main`.
+The pipeline on the MR or PR runs the verify jobs; when they pass, it merges by itself and the pipeline on `main` deploys. When they fail, the agent fixes it on the same branch. The rule is the Git section of `AGENTS.md`; step 5 of `HARNESS-SETUP.md` checks the CI config, and step 7 lists the GitLab and GitHub settings you turn on.
 
 ## Token cost
 
@@ -142,7 +144,7 @@ To upgrade a project that has an older harness, commit first. Then:
 | --- | --- | --- |
 | Deny rules in `.claude/settings.json` | Claude's file tools and recognized file commands reading `.env` and credentials, and editing `.claude/settings.json` and `.claude/hooks/` | A script that opens the files itself |
 | `.claude/hooks/guard.ps1` hook | Shell commands that name a `.env` path, and `git push` written in a form the `ask` rule does not match | A script or alias that hides the path or the push |
-| GitHub branch protection on `main` and `dev` | Any push to `main` or `dev` that breaks the protection rules (the only hard limit) | Only a repository admin who changes the rules |
+| Protected `main` (GitLab) or a ruleset on `main` (GitHub), with required pipeline | Any direct push to `main`, and any merge whose verify jobs fail (the only hard limit) | Only a repository admin who changes the rules |
 
 Without an OS sandbox, a script can still read `.env`, so keep real secrets out of the working tree. Use auto mode for day-to-day work; switch on bypass permissions only for a long Build you leave unattended. Edits to `.claude/settings.json` and `.claude/hooks/` are the human's.
 

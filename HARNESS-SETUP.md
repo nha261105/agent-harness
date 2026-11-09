@@ -12,7 +12,7 @@ Done when all of these hold:
 - No `openspec-*` skills remain under `.claude/skills/`.
 - `.claude/settings.json` and `.claude/hooks/guard.ps1` are unchanged from the template.
 - `AGENTS.md` carries a `Verify:` line with a check command the human confirmed, or your final report states that the repository has none.
-- When the repository has a remote `origin`, a `dev` branch exists there, or the human chose to work from `main`.
+- When the repository has a remote `origin`, your final report says whether its CI config has verify jobs and a deploy on `main`.
 - This file is deleted, and your final report lists what changed, which commands ran, what you could not check, and ends with the human's next steps in Vietnamese (restart Claude Code, then `/memory` and `/skills`).
 
 ## 0. Preconditions
@@ -109,9 +109,9 @@ operations:
 
 Check: `openspec context --json` returns a `root` and prints no warning (a warning means a config rule was dropped; fix the config and rerun), and `AGENTS.md` no longer mentions `HARNESS-SETUP.md`.
 
-## 5. Dev branch
+## 5. Branch and pipeline
 
-In `AGENTS.md`, each change branches from `dev` and merges back into it by PR, so `main` stays stable. When the repository uses git with a remote `origin` and `git ls-remote --heads origin dev` prints nothing, ask the human once whether to create `dev`. On yes, run `git fetch origin` and then `git push origin origin/main:refs/heads/dev`, which creates `dev` on the remote without switching the current branch (the push goes through the human's approval prompt). On no, the agent works from `main`, as `AGENTS.md` allows. Check: `git ls-remote --heads origin dev` prints a line, or the human said no.
+In `AGENTS.md`, `main` is production: each change is cut from `main`, reaches it through a merge request (GitLab) or pull request (GitHub) with auto-merge on, and deploys once the pipeline's verify jobs pass. Skip this step when the repository has no remote `origin`, and say so in your final report. Otherwise read `git remote get-url origin` to tell GitLab from GitHub, then read the CI config (`.gitlab-ci.yml`, or `.github/workflows/`) and report whether it has verify jobs and a deploy job that runs on `main` after them. Do not create or change the CI config or the platform settings here; those are the human's (step 7 lists the settings). Check: your final report names the platform and what the CI config has or lacks.
 
 ## 6. Delete this file
 
@@ -126,4 +126,7 @@ Report in a few lines: what changed, which commands ran and their results, and w
 > 2. Gõ `/memory` và kiểm tra `AGENTS.md` có trong danh sách.
 > 3. Gõ `/skills` và kiểm tra `opsx:update` là user-only, `opsx:propose`, `opsx:apply`, `opsx:archive` thì không, và không còn skill `openspec-*` nào.
 > 4. Bật auto mode (`Shift+Tab`), rồi thử `/brief` với một việc nhỏ: bạn chỉ cần trả lời và nói "ok" ở Stop 1 và Stop 3 (việc nhỏ không có Stop 2).
-> 5. Trên GitHub, bật branch protection cho `main` và `dev` (Settings → Branches): đây là lớp duy nhất chặn được mọi cách push.
+> 5. Bảo vệ `main` trên nền tảng của repo (đây là lớp duy nhất chặn được mọi cách push):
+>    - GitLab: Settings → Repository → Protected branches: `main` với Allowed to push = No one, Allowed to merge = Maintainers. Settings → Merge requests: bật "Pipelines must succeed" và auto-merge.
+>    - GitHub: Settings → General: bật "Allow auto-merge". Settings → Rules (hoặc Branches): với `main`, bắt buộc pull request và các status check verify phải xanh.
+>    - Nếu báo cáo nói CI còn thiếu job verify hoặc deploy trên `main`, thêm chúng trước khi bắt đầu change đầu tiên.

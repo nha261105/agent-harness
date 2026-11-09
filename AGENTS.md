@@ -26,7 +26,7 @@ The human types only at the stops below (Small has Stop 1 and Stop 3, Large all 
 
 ## Git
 
-Name the branch `feat/<name>`, `fix/<name>`, or `chore/<name>` after the change, unless the environment assigns one, and cut it from `dev` (from `main` when the repository has no `dev`) right after switching to that base and running `git pull --ff-only`. Commit after each verified task; when the human says done, push and open a PR into that base, and start the next change only after the human merges it. Only the human merges and promotes `dev` to `main`; never merge into either locally.
+`main` is the only long-lived branch and it is production: its pipeline runs the verify jobs and deploys when they pass. Name the branch `feat/<name>`, `fix/<name>`, or `chore/<name>` after the change, unless the environment assigns one, and cut it from `main` right after `git switch main` and `git pull --ff-only`. Commit after each verified task. When the human says done, push the branch and open a merge request (GitLab) or pull request (GitHub) into `main` with auto-merge on, so it merges and deploys once the pipeline passes; when the pipeline fails, fix it on the same branch. Start the next change only after the previous one has merged. Never push to `main` or merge into it locally.
 
 ## Gotchas
 

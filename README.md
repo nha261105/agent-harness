@@ -36,11 +36,16 @@ openspec/
 
 ```
 Human: /brief <what, or an issue link>     loads skills/brief
-  agent reads the code read-only, drafts a missing why or done-when as (proposed),
+  agent stops when the previous change has uncommitted work or an open PR/MR,
+  reads the code, openspec/specs/, and open changes read-only, drafts a missing why
+  or done-when as (proposed), finds the root cause of a bug (Cause: with evidence),
   asks at most three questions, proposes Small or Large (risky areas are always Large)
 ■ Stop 1: human confirms the brief (What, Why, Out of scope, Done when), the planned flow
-  (a data flow diagram with no code names and at least one ✗ failure path), and the size
-  ├─ Small: the same message lists the tasks; after ok the agent writes plans/<name>.md
+  (a data flow diagram with no code names and at least one ✗ failure path, or "none"
+  when no data moves), and the size
+  ├─ after ok the agent cuts feat|fix|chore/<name> from an up-to-date main
+  ├─ Small: the same message lists the tasks (a bug starts with a failing test);
+  │         after ok the agent writes plans/<name>.md
   │         (with the planned flow under ## Flow),
   │         builds, and ticks a task only after its Verify passes
   └─ Large: /opsx:propose <name>           loads commands/opsx/propose.md and openspec/config.yaml

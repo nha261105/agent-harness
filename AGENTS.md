@@ -6,9 +6,9 @@ This repository is a human-gated agent harness: the human decides what to build 
 
 ## Choosing the path
 
-A single, plainly small edit (a typo, a rename, one line) goes straight through. Everything else starts with `/brief`, which ends with a Small or Large proposal. Small: one module, no behavior that `openspec/specs/` describes, and nothing touching data migration or deletion, auth or permissions, a public API or contract, payments, or security settings; you plan it in `plans/<name>.md` and build it yourself. Large: an OpenSpec change built by a worker through `orca-delegate`.
+A single, plainly small edit (a typo, a rename, one line) goes straight through. Everything else starts with `/brief`, which ends with a Small or Large proposal; when the human asks for such a change without it, ask them to type `/brief <what>` and wait. Small: one module, no behavior that `openspec/specs/` describes, and nothing touching data migration or deletion, auth or permissions, a public API or contract, payments, or security settings; you plan it in `plans/<name>.md` and build it yourself. Large: an OpenSpec change built by a worker through `orca-delegate`.
 
-For a reported bug, find the root cause before changing product code. Report the cause, the proposed fix, and its size, then wait.
+For a reported bug, find the root cause before changing product code: `/brief` reports it as `Cause:` with its evidence, next to the proposed fix and its size.
 
 ## Workflow
 

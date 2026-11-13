@@ -14,11 +14,11 @@ For a reported bug, find the root cause before changing product code. Report the
 
 The human types only at the stops below (Small has Stop 1 and Stop 3, Large all three): answers, questions, and "ok". Between stops, run every step yourself without asking for a command. At each stop, report and wait. When compacting, preserve the change name, the last stop passed, and what the human approved. To keep context lean, suggest `/clear` after the human says done and after Stop 2 on a Large change (the plan holds the state), and suggest `/handoff` when the human says the session is long before the change is done.
 
-1. **Brief** (`/brief`). **Stop 1:** the human confirms the brief and the size; for Small also the tasks, and after "ok" you write `plans/<name>.md` and go to Build.
+1. **Brief** (`/brief`). **Stop 1:** the human confirms the brief, the planned flow (data, no code), and the size; for Small also the tasks, and after "ok" you write `plans/<name>.md` and go to Build.
 2. **Plan** (Large only). Run `/opsx:propose <name>` and summarize the plan in 5–10 lines. **Stop 2:** the human approves the plan.
 3. **Build.** Large: delegate with `orca-delegate`, answer the worker, and accept its result. Small: build it yourself. Edit only what the tasks name, tick a task only once its outcome is verified, and stop at once when plan and code disagree. After the last task, run the `Verify:` line of this file when it has one, and fix any failure before Review.
 4. **Review.** Run `/code-review low` (Small) or `/code-review medium` (Large), then `/ponytail-review`. Fix correctness findings the review marks as confirmed without asking: append each under `## Review fixes` in the plan and build it (Large: send it back to the same worker). Stop after two fix rounds. Keep every other finding (design, scope, deletions) for Stop 3.
-5. **Explain** (`/explain-back <name>`). **Stop 3:** the human asks questions and decides the pending findings. Picked findings go back to step 3. When the human says done: Large, run `/opsx:archive <name>` and pick "Sync now"; Small, report it done.
+5. **Explain** (`/explain-back <name>`). **Stop 3:** the human retells the flow, asks questions, and decides the pending findings, including where the built flow differs from the planned one. Picked findings go back to step 3. When the human says done: Large, run `/opsx:archive <name>` and pick "Sync now"; Small, report it done.
 
 ## Guardrails
 
@@ -32,7 +32,7 @@ The human types only at the stops below (Small has Stop 1 and Stop 3, Large all 
 
 - Keep `AGENTS.md` as the only instruction file. A `CLAUDE.md`, `.claude/CLAUDE.md`, or `CLAUDE.local.md` in this directory or any directory above it (`/init` creates one) makes Claude Code read that file instead of this one.
 
-<!-- Maintainers: the /opsx:* commands run the globally installed openspec CLI. Hard limits live in .claude/settings.json (permissions) and .claude/hooks/guard.ps1; this file guides, it does not enforce. -->
+<!-- Maintainers: the /opsx:* commands run the globally installed openspec CLI. Hard limits live in .claude/settings.json (permissions) and .claude/hooks/guard.sh; this file guides, it does not enforce. -->
 
 ## Reporting
 

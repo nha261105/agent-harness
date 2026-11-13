@@ -19,26 +19,20 @@
     ],
     "ask": [
       "Bash(git push)",
-      "Bash(git push *)",
-      "PowerShell(git push)",
-      "PowerShell(git push *)"
+      "Bash(git push *)"
     ]
   },
   "enableAllProjectMcpServers": false,
   "hooks": {
     "PreToolUse": [
       {
-        "matcher": "PowerShell",
+        "matcher": "Bash",
         "hooks": [
           {
             "type": "command",
-            "command": "powershell.exe",
+            "command": "bash",
             "args": [
-              "-NoProfile",
-              "-ExecutionPolicy",
-              "Bypass",
-              "-File",
-              "${CLAUDE_PROJECT_DIR}/.claude/hooks/guard.ps1"
+              "${CLAUDE_PROJECT_DIR}/.claude/hooks/guard.sh"
             ],
             "timeout": 10,
             "onFailure": "block"

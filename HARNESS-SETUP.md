@@ -10,7 +10,7 @@ Done when all of these hold:
 - OpenSpec is initialized, `/opsx:propose`, `/opsx:apply`, `/opsx:archive`, and `/opsx:update` exist, and `/opsx:update` is user-only while the other three are not (the agent runs them itself, as `AGENTS.md` describes).
 - `openspec/config.yaml` carries the human's project context and the rules below.
 - No `openspec-*` skills remain under `.claude/skills/`.
-- `.claude/settings.json` and `.claude/hooks/guard.ps1` are unchanged from the template.
+- `.claude/settings.json` and `.claude/hooks/guard.sh` are unchanged from the template.
 - `AGENTS.md` carries a `Verify:` line with a check command the human confirmed, or your final report states that the repository has none.
 - When the repository has a remote `origin`, your final report says whether its CI config has verify jobs and a deploy on `main`.
 - This file is deleted, and your final report lists what changed, which commands ran, what you could not check, and ends with the human's next steps in Vietnamese (restart Claude Code, then `/memory` and `/skills`).
@@ -27,7 +27,7 @@ Run `openspec init --tools claude,antigravity`. Check: `openspec list --json` re
 
 ## 2. Remove what `init` generated beyond the harness
 
-Delete `.claude/skills/openspec-*`, `.claude/commands/opsx/explore.md`, `.claude/commands/opsx/sync.md`, and `.claude/skills/grilling/` (left by an older harness). Leave the `.agents/` files `init` created; Antigravity reads them. Check: `.claude/skills/` holds no `openspec-*` entry and at least `brief`, `explain-back`, `handoff`, `orca-delegate`, `ponytail-review`, `tdd`, and `wait-what`, `.claude/hooks/guard.ps1` exists, and `.claude/commands/opsx/` holds `apply.md`, `archive.md`, `propose.md`, and `update.md`.
+Delete `.claude/skills/openspec-*`, `.claude/commands/opsx/explore.md`, `.claude/commands/opsx/sync.md`, and `.claude/skills/grilling/` (left by an older harness). Leave the `.agents/` files `init` created; Antigravity reads them. Check: `.claude/skills/` holds no `openspec-*` entry and at least `brief`, `explain-back`, `handoff`, `orca-delegate`, `ponytail-review`, `tdd`, and `wait-what`, `.claude/hooks/guard.sh` exists, and `.claude/commands/opsx/` holds `apply.md`, `archive.md`, `propose.md`, and `update.md`.
 
 Do not run `openspec update` afterwards; it regenerates what you just removed.
 
@@ -87,6 +87,7 @@ rules:
   design:
     - Record the decisions that were hard to reverse or had real alternatives, with the reason for each choice.
     - For each new dependency, record why the standard library, native platform features, and dependencies already installed do not cover the need.
+    - Include a data flow diagram as plain text in a fenced block, showing the input, each step and what the data becomes, where it is stored, output or side effect, with no file or function names. Mark each failure path with ✗ and what happens then. Start from the planned flow in the brief.
   tasks:
     - Make each task small enough to finish and check on its own.
     - End each task with a verifiable done condition.

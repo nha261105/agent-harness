@@ -10,11 +10,12 @@ command -v jq >/dev/null 2>&1 || block 'jq is not installed, so the guard fails 
 # jq regexes (Oniguruma) support lookahead, so both checks run in one jq call.
 # .env as a path token: starts the token or follows / \ quote = or whitespace,
 # with an optional suffix such as .local, and ends the token.
-# A push not written as plain "git push ..." would slip past the ask rule.
+# git options before push (git -C dir push, git --no-pager push) slip past the ask rule.
+# Plain "git push", also inside && or ;, is left to the ask rule, which splits compound commands.
 program=$(cat <<'JQ'
 (.tool_input.command // "") as $c
 | if ($c | test("(^|[\\s\"'/\\\\=])\\.env(\\.[\\w.-]+)?(?=$|[\\s\"';|&)>])")) then "env"
-  elif ($c | test("\\bgit\\b(?!\\s+push\\b).*\\bpush\\b")) then "push"
+  elif ($c | test("\\bgit(\\s+-\\S+(\\s+(?!push\\b)[^-\\s]\\S*)?)+\\s+push\\b")) then "push"
   else "ok" end
 JQ
 )

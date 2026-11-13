@@ -26,7 +26,9 @@ The human types only at the stops below (Small has Stop 1 and Stop 3, Large all 
 
 ## Git
 
-`main` is the only long-lived branch and it is production: its pipeline runs the verify jobs and deploys when they pass. Name the branch `feat/<name>`, `fix/<name>`, or `chore/<name>` after the change, unless the environment assigns one, and cut it from `main` right after `git switch main` and `git pull --ff-only`. Commit after each verified task. When the human says done, push the branch and open a merge request (GitLab) or pull request (GitHub) into `main` with auto-merge on, so it merges and deploys once the pipeline passes; when the pipeline fails, fix it on the same branch. Start the next change only after the previous one has merged. Never push to `main` or merge into it locally.
+`main` is the only long-lived branch and it is production: its pipeline runs the verify jobs and deploys when they pass. Name the branch `feat/<name>`, `fix/<name>`, or `chore/<name>` after the change, unless the environment assigns one, and cut it from `main` right after `git switch main` and `git pull --ff-only`. Commit after each verified task, with the message `<type>: <task>` (`feat`, `fix`, or `chore`). When the human says done, archive a Large change first and commit it, then push the branch and open a merge request (GitLab) or pull request (GitHub) into `main` with auto-merge on, so it merges and deploys once the pipeline passes. Watch the pipeline (`gh pr checks --watch` or `glab ci status --live`) and report the result; when it fails, fix it on the same branch. After it merges, run `git switch main` and `git pull --ff-only`, and delete the local branch with `git branch -D` (a squash merge leaves it looking unmerged).
+
+Start the next change only after the previous one has merged; only a `fix/` for broken production may start while another is open. Roll back a bad deploy with `git revert` of its merge commit on a `fix/` branch, through a merge request or pull request like any change. Never push to `main` or merge into it locally.
 
 ## Gotchas
 
@@ -36,4 +38,4 @@ The human types only at the stops below (Small has Stop 1 and Stop 3, Large all 
 
 ## Reporting
 
-At each stop, list the commands you ran with their results, and what you did not check.
+At each stop, list the commands you ran with their results, and what you did not check. Talk to the human in the language they write in; write files, code, and commit messages in English.

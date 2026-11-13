@@ -58,11 +58,13 @@ Review: /code-review low (Small) or medium (Large), then /ponytail-review
   confirmed correctness findings go under ## Review fixes and back to Build (two rounds at most)
   design, scope, and deletion findings wait for Stop 3
 /explain-back <name>                        loads skills/explain-back
-  summary, actual flow against the planned one (✓ ⚠ + − per step, with file:line), decisions,
-  pending findings (each flow difference is one); the human retells the flow in their own words
+  one screen in the human's language: before/after summary, the actual flow (no code names),
+  one example input traced through it, a planned-against-actual table (✓ ⚠ + − with file:line),
+  decisions, pending findings (each flow difference is one); the human retells the flow
 ■ Stop 3: human retells the flow, asks questions, and picks findings (picked ones go back to Build)
   wait-what re-pitches anything that did not land
-Done: Large runs /opsx:archive <name> and picks "Sync now"; Small is reported done
+Done: Large runs /opsx:archive <name> and picks "Sync now" and commits it; then push, PR/MR with
+  auto-merge, the agent watches the pipeline and reports; after the merge it cleans up the branch
 ```
 
 `handoff` sits outside the flow: the human calls it to move work to a new session, and it records the last stop passed.
@@ -83,6 +85,7 @@ A long session dilutes the model's context and costs more tokens. The agent cann
 main ──●──────────●──────────●────  production: every merge deploys
        ↑ MR/PR    ↑ MR/PR    ↑ MR/PR   auto-merge once the verify jobs pass, then the deploy job runs
      feat/a     fix/b      feat/c      one change at a time, each cut from main after the previous merge
+                                        (only a fix/ for broken production may start while another is open)
 ```
 
 A change, start to finish:
@@ -91,11 +94,17 @@ A change, start to finish:
 git switch main
 git pull --ff-only
 git switch -c feat/<name>
-# small commits, one per verified task
+# small commits, one per verified task: "feat: <task>", "fix: <task>", "chore: <task>"
 git push -u origin feat/<name>                                # after you say done; asks for approval
-glab mr create --target-branch main --fill --yes && glab mr merge --auto-merge  # GitLab
+glab mr create --target-branch main --fill --yes && glab mr merge --auto-merge --squash  # GitLab
 gh pr create --base main --fill && gh pr merge --auto --squash # GitHub
+glab ci status --live   # GitLab: watch the pipeline
+gh pr checks --watch    # GitHub: watch the pipeline
+# after it merges
+git switch main && git pull --ff-only && git branch -D feat/<name>
 ```
+
+When a deploy breaks production, roll back with a change like any other: `git revert -m 1 <merge commit>` on a `fix/` branch, then the same PR or MR steps. For a squash merge, drop `-m 1`.
 
 The pipeline on the MR or PR runs the verify jobs; when they pass, it merges by itself and the pipeline on `main` deploys. When they fail, the agent fixes it on the same branch. The rule is the Git section of `AGENTS.md`; step 5 of `HARNESS-SETUP.md` checks the CI config, and step 7 lists the GitLab and GitHub settings you turn on.
 

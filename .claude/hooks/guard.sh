@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
 # PreToolUse guard for Bash calls. Needs bash and jq.
 # Exit 2 with a message on stderr blocks the call; exit 0 lets it through.
-# Edits to this file are the human's.
 
 block() { echo "Blocked by .claude/hooks/guard.sh: $1" >&2; exit 2; }
 

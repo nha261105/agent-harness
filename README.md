@@ -155,17 +155,17 @@ To upgrade a project that has an older harness, commit first. Then:
 | Claude Code does not follow `AGENTS.md` | A `CLAUDE.md` (for example one created by `/init`) exists in the project directory or above it, so Claude Code reads that instead. | Delete the `CLAUDE.md`, then run `/memory` and confirm `AGENTS.md` is listed. |
 | A hidden skill shows up again or costs tokens | Its `skillOverrides` entry is missing, misspelled, or in the wrong settings file. | Open `/skills` and check its state. The template's entries (from step 3 of `HARNESS-SETUP.md`) are in `.claude/settings.local.json`; any others you add are in `~/.claude/settings.json`. If an account or built-in skill ignores the project entry, move it to `~/.claude/settings.json`. |
 | Deleted skills or commands reappear after `openspec update` | The global OpenSpec profile is still `core` with delivery `both`, so `update` regenerates them. | Delete the regenerated files again, or change the profile with `openspec config profile` before running `openspec update` (an option; not yet tested). |
-| Every shell command is blocked and the message names guard.sh | `jq` is missing, the hook timed out, or `bash` cannot run `.claude/hooks/guard.sh`, and `onFailure: block` fails closed. | Install `jq`. If it still blocks, run the hook by hand: `echo '{"tool_input":{"command":"ls"}}' \| bash .claude/hooks/guard.sh; echo $?` should print `0`; fix the error it prints. Changes to `.claude/settings.json` and `.claude/hooks/` are the human's. |
+| Every shell command is blocked and the message names guard.sh | `jq` is missing, the hook timed out, or `bash` cannot run `.claude/hooks/guard.sh`, and `onFailure: block` fails closed. | Install `jq`. If it still blocks, run the hook by hand: `echo '{"tool_input":{"command":"ls"}}' \| bash .claude/hooks/guard.sh; echo $?` should print `0`; fix the error it prints. |
 
 ## Security model
 
 | Layer | Stops | Can be bypassed by |
 | --- | --- | --- |
-| Deny rules in `.claude/settings.json` | Claude's file tools and recognized file commands reading `.env` and credentials, and editing `.claude/settings.json` and `.claude/hooks/` | A script that opens the files itself |
+| Deny rules in `.claude/settings.json` | Claude's file tools and recognized file commands reading `.env` and credentials, and editing `.env`, `CLAUDE.md`, and `CLAUDE.local.md` | A script that opens the files itself |
 | `.claude/hooks/guard.sh` hook | Shell commands that name a `.env` path, and `git push` written in a form the `ask` rule does not match | A script or alias that hides the path or the push |
 | Protected `main` (GitLab) or a ruleset on `main` (GitHub), with required pipeline | Any direct push to `main`, and any merge whose verify jobs fail (the only hard limit) | Only a repository admin who changes the rules |
 
-Without an OS sandbox, a script can still read `.env`, so keep real secrets out of the working tree. Use auto mode for day-to-day work; switch on bypass permissions only for a long Build you leave unattended. Edits to `.claude/settings.json` and `.claude/hooks/` are the human's.
+Without an OS sandbox, a script can still read `.env`, so keep real secrets out of the working tree. Use auto mode for day-to-day work; switch on bypass permissions only for a long Build you leave unattended. No deny rule covers `.claude/settings.json` or `.claude/hooks/`, so the agent can edit its own guardrails: review every diff to them before you commit it.
 
 ## Adding rules per project
 

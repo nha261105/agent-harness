@@ -54,7 +54,7 @@ You type only at the stops: answers, questions, "ok", and "done". Between the st
 
 - `/memory` lists `AGENTS.md`. Never run `/init`: it creates a `CLAUDE.md`, and Claude Code then stops reading `AGENTS.md`.
 - `/skills` shows `opsx:update` as user-only, and `opsx:propose`, `opsx:apply`, `opsx:archive` as available to Claude.
-- Ask Claude to run `cat .env`: the hook blocks it. Ask for `git push --dry-run`: an approval prompt appears.
+- `bash .claude/hooks/guard.test.sh` prints no `FAIL`. Ask Claude to run `cat .env`: the hook blocks it. Ask for `git push --dry-run`: an approval prompt appears.
 - In auto mode (`Shift+Tab`), run `/brief` on a tiny change. You should only need to answer at Stop 1 and Stop 3.
 - On GitHub or GitLab, protect `main`: changes only through PR/MR, required pipeline, auto-merge allowed. This is the only guard nothing can bypass.
 
@@ -121,7 +121,7 @@ The rules for these files live in `openspec/config.yaml`.
 ### ③ Build
 
 - **Small:** the agent builds it in your session.
-- **Large:** `orca-delegate` starts a worker (default `claude` / `claude-sonnet-5-5` / `medium`) that runs `/opsx:apply`. The agent answers the worker's questions and checks that the worker only touched the files the plan lists.
+- **Large:** `orca-delegate` starts a worker (default `claude` / `claude-sonnet-5-5` / `medium`) that runs `/opsx:apply`. The agent answers the worker's questions and checks that the worker only touched the files the plan lists. When Orca is not available, the agent says so and, after your ok, uses a Claude Code subagent with the same spec.
 
 Either way:
 - only the tasks in the plan are touched;
@@ -209,7 +209,7 @@ gh pr checks --watch     # or: glab ci status --live
 git switch main && git pull --ff-only && git branch -D feat/<name>   # after the merge
 ```
 
-Step 5 of `HARNESS-SETUP.md` checks that your CI has verify jobs and a deploy on `main`. The final step lists the GitHub and GitLab settings to turn on.
+Without a pipeline, the agent opens the PR/MR without auto-merge and waits for you to merge it; without a remote, it commits and reports. Step 5 of `HARNESS-SETUP.md` checks that your CI has verify jobs and a deploy on `main`. The final step lists the GitHub and GitLab settings to turn on.
 
 ---
 
@@ -217,16 +217,16 @@ Step 5 of `HARNESS-SETUP.md` checks that your CI has verify jobs and a deploy on
 
 | Layer | What it stops | Can be bypassed by |
 | --- | --- | --- |
-| **Deny rules** in `.claude/settings.json` | Claude's file tools reading `.env`, keys, and credentials, and editing `.env`, `CLAUDE.md`, `CLAUDE.local.md` | A script that opens the files itself |
+| **Deny rules** in `.claude/settings.json` | Claude's file tools reading or editing `.env` files (`.env.example` and `.env.sample` stay open), reading keys and credentials, and editing `CLAUDE.md`, `CLAUDE.local.md`, `.claude/settings.json` and `.claude/hooks/` | A script that opens the files itself |
 | **Ask rule** in `.claude/settings.json` | Every `git push` waits for your approval | A push written in another form (the hook catches the common ones) |
-| **Hook** `.claude/hooks/guard.sh` (bash + jq, runs before every shell command) | Commands that name a `.env` path, and `git <options> push` (for example `git -C dir push`), which would slip past the ask rule. If the hook fails, it blocks | A script or alias that hides the path or the push |
+| **Hook** `.claude/hooks/guard.sh` (bash + jq, runs before every shell command) | Commands that name a `.env` path (any variant except `.env.example`, `.env.sample`, `.env.template`), and `git <options> push` (for example `git -C dir push`), which would slip past the ask rule. If the hook fails, it blocks | A script or alias that hides the path or the push |
 | **Protected `main`** on GitHub/GitLab with a required pipeline | Any direct push to `main`, and any merge whose checks fail | Only a repository admin |
 
 Only the last layer is a hard limit. Without an OS sandbox a script can still read `.env`, so keep real secrets out of the working tree.
 
 Use auto mode day to day. Use bypass permissions only for a long build you leave unattended.
 
-No deny rule covers `.claude/settings.json` or `.claude/hooks/`, so the agent can edit its own guardrails. Review every diff to them before you commit it.
+The agent cannot edit `.claude/settings.json` or `.claude/hooks/` with its file tools, so you change the guardrails yourself. A shell command could still rewrite them, so review every diff to them before you commit it.
 
 `AGENTS.md` also tells the agent: when a guardrail blocks something, report it and never work around it.
 
@@ -246,6 +246,7 @@ openspec/
 .claude/
   settings.json            deny and ask rules, and the hook
   hooks/guard.sh           the shell-command guard
+  hooks/guard.test.sh      tests for the guard: bash .claude/hooks/guard.test.sh
   skills/                  the workflow steps (table below)
   commands/opsx/           propose, apply, archive, update (generated by OpenSpec; do not edit)
 ```
@@ -275,7 +276,7 @@ openspec/
 | Mid-Build, mid-Review, or Stop 3 half decided, when the session is long | Partly only in the conversation | `/handoff`, then paste its last line into the new session |
 
 **What costs context, largest first:**
-- **Generated `opsx` commands.** `propose.md` and `archive.md` are about 170 and 265 lines. `openspec update` regenerates them, so trimming them by hand does not last.
+- **Generated `opsx` commands.** `propose.md` and `archive.md` are about 170 and 265 lines. `openspec update` regenerates them, so trimming them by hand does not last, and the default `core` profile is already the smallest set of workflows.
 - **`/code-review` level.** It is pinned to `low` and `medium`; higher levels start many reviewer subagents.
 - **The worker on Large.** It reads the change folder from scratch, and the agent spends turns answering it.
 - **Skill descriptions.** They load every session. `HARNESS-SETUP.md` step 3 hides unneeded ones via `skillOverrides` in `.claude/settings.local.json`; hide more there or in `~/.claude/settings.json`.
@@ -292,7 +293,7 @@ openspec/
 | Rules for Large-change documents (proposal, specs, design, tasks) | `openspec/config.yaml`, and the template copy in `HARNESS-SETUP.md` |
 | Worker agent, model, effort | `.claude/skills/orca-delegate/SKILL.md` |
 | The Stop 3 explanation | `.claude/skills/explain-back/SKILL.md` |
-| Guardrails | `.claude/settings.json`, `.claude/hooks/guard.sh` |
+| Guardrails | `.claude/settings.json`, `.claude/hooks/guard.sh` (edit them yourself: the agent is denied). After a hook change, add a case to `.claude/hooks/guard.test.sh` and run it |
 
 To add a step, add a line under Workflow in `AGENTS.md` and a skill in `.claude/skills/<name>/SKILL.md`. Never edit `.claude/commands/opsx/*.md`.
 
@@ -319,7 +320,7 @@ Hard limits belong in `.claude/settings.json` or the hook. Mechanical rules (for
 
 | Symptom | Cause | Fix |
 | --- | --- | --- |
-| Every shell command is blocked, naming `guard.sh` | `jq` is missing, or the hook failed or timed out (it fails closed) | Install `jq`. Then `echo '{"tool_input":{"command":"ls"}}' \| bash .claude/hooks/guard.sh; echo $?` should print `0` |
+| Every shell command is blocked, naming `guard.sh` | `jq` is missing, or the hook failed or timed out (it fails closed) | Install `jq`. Then `bash .claude/hooks/guard.test.sh` should print no `FAIL` |
 | Claude ignores `AGENTS.md` | A `CLAUDE.md` exists here or in a parent directory (often from `/init`) | Delete it; `/memory` should list `AGENTS.md` |
 | `openspec: command not found` | The CLI is not installed globally | `npm install -g @fission-ai/openspec@latest` |
 | Deleted skills or commands come back | `openspec update` regenerated them | Delete them again, or change the profile with `openspec config profile` first (untested) |

@@ -90,6 +90,7 @@ rules:
     - Include a data flow diagram as plain text in a fenced block, showing the input, each step and what the data becomes, where it is stored, output or side effect, with no file or function names. Mark each failure path with ✗ and what happens then. Start from the planned flow in the brief.
   tasks:
     - Make each task small enough to finish and check on its own.
+    - When a task adds a test, name its seam: the public interface the test goes through.
     - End each task with a verifiable done condition.
     - Write each task so an agent that never saw the conversation can carry it out from the change folder alone.
     - Before a task adds new code, check in order whether code in this repository, the standard library, native platform features, or dependencies already installed cover the need, and point the task there. A task adds new code only when none of these does.

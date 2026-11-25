@@ -20,7 +20,7 @@ Turn the human's intent into a brief, then propose a size. Follow these steps in
    - The closing line.
 
    The planned **Flow** is a text diagram of 3 to 8 lines that follows the data, not the code. Show the input, each step and what the data becomes, where it is stored, and the output or side effect. Use no file, function, or class names, so the human can judge it without reading code. Mark at least one failure path with `✗` and say what happens then (for example, what is left half done). When the change moves no data (documentation, wording, one config value), write `Flow: none (<reason>)` instead.
-   - Small: add the numbered tasks, each in the form `N. <task>. Verify: <command or observable check>`. For a bug, task 1 adds a test that reproduces it and fails before the fix (the `tdd` skill), and a later task makes it pass. End with: "Say ok and I will build it." There is no Stop 2.
+   - Small: add the numbered tasks, each in the form `N. <task>. Verify: <command or observable check>`. A task that adds a test names its seam: the public interface the test goes through (the `tdd` skill). For a bug, task 1 adds a test that reproduces it and fails before the fix (the `tdd` skill), and a later task makes it pass. End with: "Say ok and I will build it." There is no Stop 2.
    - Large: end with: "Say ok and I will plan it."
 
    Then wait. Edit no file before the human says ok.
